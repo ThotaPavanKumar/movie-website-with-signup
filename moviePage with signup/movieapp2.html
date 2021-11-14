@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie app 2 Debouncing</title>
+    <style>
+        body {
+             background-color: rgb(184, 207, 140);
+        }
+        #inp {
+           width: 300px;           
+           margin-left: 500px;
+        }
+        #movies {
+            border: 1px solid rgb(21, 167, 123);
+            width: 306px;
+            overflow-y: scroll;
+            border-top: none;
+            background-color: #131927;
+            color: white;
+            margin-left: 500px;
+        }
+        #image_inner { 
+            width: 100%; 
+            padding: 10px;
+            height: 80px;
+        }
+        h1{
+            text-align: center;
+            font-family : Roboto, HelveticaNeue-Light, sans-serif;
+        }
+        #show_info {
+                display : grid;
+                grid-Template-Columns : 46% 46%;
+                height : 480px;
+                width : 800px;
+                margin-Left : 150px;
+                margin-Top : 25px;
+                padding : 10px;
+                font-size: 25px;
+        }
+        #inner_title {
+            height : 60px;
+            width : 100%;
+            padding : 10px;
+            text-Align : center;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Movies</h1>
+        <a href="signup.html"><button id="signin">SIGN IN</button></a>
+        <!-- <button id="signin">SIGN IN</button> -->
+        <h3 id="sign-in"></h3>
+        <input oninput="debounce(main,1000)" type="text" id="inp" placeholder="Enter movie Name"/>
+    </div>
+    <div id="movies">
+       
+    </div>
+    <div id="show_info">
+       
+    </div>
+    
+
+</body>
+</html>
+<script>
+
+var data = JSON.parse(window.localStorage.getItem("youtubecart"));
+
+document.getElementById("sign-in").innerHTML = data;
+if( data != null) {
+  document.getElementById("signin").style.display = "none";
+}
+
+
+    var container = document.getElementById("container");
+    var show_info = document.getElementById("show_info");
+    var timer_Id;
+    var display = document.getElementById("movies");
+
+    async function searchMovies(movie_name) {
+       
+        console.log(movie_name);
+        try {
+
+            let res = await fetch(`http://www.omdbapi.com/?apikey=cf72acbd&s=${movie_name}`);
+
+            let data = await res.json();
+
+            console.log("data: ",data);
+           
+            
+            showMovies(data.Search);
+            show_info.innerHTML = null;
+            show_info.style.backgroundColor = "rgb(184, 207, 140)";
+
+        }
+        catch(e) {
+            console.log("e: ",e);
+        }  
+    }
+
+    function showMovies(movie_name) {
+        console.log(movie_name);
+
+        if(movie_name === undefined) {
+                return false;
+        }
+
+        display.innerHTML = null;
+
+        movie_name.forEach(function (movie_details) {
+            console.log(movie_details );
+            let div_main = document.createElement("div");
+           
+            let div_img = document.createElement("div");
+
+            let div_title = document.createElement("div");
+
+            let title = document.createElement("div");
+            title.innerHTML = movie_details.Title;  
+            title.setAttribute("id","inner_title");
+
+            div_title.append(title);
+
+            let img = document.createElement("img");
+            img.src = movie_details.Poster;
+            img.setAttribute("id","image_inner");
+            div_img.append(img);
+
+            div_main.append(div_img,div_title);
+            div_main.style.display = "grid";
+            div_main.style.gridTemplateColumns = "46% 46%";
+            div_main.style.border = "2px solid yellow";
+
+            div_main.onclick = function() {
+                movieInformation(movie_details);  
+            }                   
+
+            display.append(div_main);
+            display.style.height = "300px";
+         
+        });  
+    }
+
+    function movieInformation(movie_details) {   
+                display.innerHTML = null;
+                display.style.height = "0px";
+                show_info.innerHTML = null;
+
+                let div_display = document.createElement("div");
+
+                let img = document.createElement("img");
+                img.src = movie_details.Poster;
+
+                let title = document.createElement("div");
+                title.innerHTML = "Title: "+ " " + movie_details.Title;
+
+                let type = document.createElement("p");
+                type.innerHTML = "Type: "+ " " + movie_details.Type;
+
+                let year = document.createElement("p");
+                year.innerHTML = "Year: "+ " " + movie_details.Year;
+
+                let imdbID = document.createElement("p");
+                imdbID.innerHTML = "imdbID: "+ " " + movie_details.imdbID;
+
+                div_display.append(title,type,year,imdbID);
+
+                show_info.append(img,div_display);
+                show_info.setAttribute("id","show_info");
+                show_info.style.backgroundColor = "green";
+
+    }
+
+    async function main() {
+
+        let movie_name = document.getElementById("inp").value;
+
+        if(movie_name.length < 3) {
+            return false;
+        }
+        let det = await searchMovies(movie_name);
+        console.log("det: ",det);
+    }
+
+    function debounce(func, delay) {
+
+        if(timer_Id) {
+            clearTimeout(timer_Id);
+        }
+
+         timer_Id =  setTimeout(function() {
+
+                func()
+
+            },delay);
+    }
+
+
+</script>
